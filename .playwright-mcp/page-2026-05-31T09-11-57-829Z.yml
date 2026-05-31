@@ -1,0 +1,28 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - button [ref=e6]:
+        - img
+      - generic [ref=e7]: Conversations
+      - button [ref=e8]:
+        - img
+    - generic [ref=e10]:
+      - img [ref=e11]
+      - textbox "Search conversations..." [ref=e14]
+    - generic [ref=e19]:
+      - img [ref=e20]
+      - paragraph [ref=e22]: No conversations yet
+      - button "Start chatting" [ref=e23]:
+        - img
+        - text: Start chatting
+  - main [ref=e24]:
+    - button [ref=e26]:
+      - img
+    - generic [ref=e27]:
+      - img [ref=e28]
+      - generic [ref=e30]:
+        - heading "Welcome to Chat" [level=2] [ref=e31]
+        - paragraph [ref=e32]: Start a new conversation or select an existing one
+      - button "New Chat" [ref=e33]:
+        - img
+        - text: New Chat

@@ -1,0 +1,4 @@
+{"file": "research/shadcn-vite-setup.md", "reason": "shadcn/ui v4 installation, Tailwind v4 config, component list, styling rules"}
+{"file": "research/gsap-react-patterns.md", "reason": "GSAP + React 19 useGSAP hook, animation patterns for message enter, sidebar collapse, stagger"}
+{"file": "research/markdown-code-highlight.md", "reason": "react-markdown + shiki setup, code block copy button, streaming typewriter pattern"}
+{"file": "prd.md", "reason": "Full requirements, acceptance criteria, technical approach, out of scope"}

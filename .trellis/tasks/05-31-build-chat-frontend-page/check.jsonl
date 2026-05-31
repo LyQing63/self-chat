@@ -1,0 +1,3 @@
+{"file": "prd.md", "reason": "Acceptance criteria to verify against implementation"}
+{"file": "research/shadcn-vite-setup.md", "reason": "Verify shadcn styling rules: semantic colors, gap-*, cn(), AvatarFallback"}
+{"file": "research/gsap-react-patterns.md", "reason": "Verify GSAP best practices: transforms over layout props, autoAlpha, cleanup"}

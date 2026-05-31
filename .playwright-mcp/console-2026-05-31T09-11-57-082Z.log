@@ -1,0 +1,8 @@
+[     620ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5199/node_modules/.vite/deps/react-dom_client.js?v=3adb7ee1:14336
+[     653ms] [WARNING] GSAP target [object NodeList] not found. https://gsap.com @ http://localhost:5199/@vite/client:524
+[     653ms] [WARNING] GSAP target  not found. https://gsap.com @ http://localhost:5199/@vite/client:524
+[     656ms] [WARNING] GSAP target [object NodeList] not found. https://gsap.com @ http://localhost:5199/@vite/client:524
+[     656ms] [WARNING] GSAP target  not found. https://gsap.com @ http://localhost:5199/@vite/client:524
+[     668ms] [WARNING] GSAP target  not found. https://gsap.com @ http://localhost:5199/@vite/client:524
+[     668ms] [WARNING] GSAP target  not found. https://gsap.com @ http://localhost:5199/@vite/client:524
+[   57954ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://localhost:5199/api/v1/chat/completions:0

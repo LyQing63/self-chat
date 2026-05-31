@@ -1,0 +1,26 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - button [ref=e6]:
+        - img
+      - generic [ref=e7]: Conversations
+      - button [ref=e8]:
+        - img
+    - generic [ref=e10]:
+      - img [ref=e11]
+      - textbox "Search conversations..." [ref=e14]
+    - generic [ref=e34] [cursor=pointer]:
+      - img [ref=e35]
+      - generic [ref=e37]: New Chat
+      - button [ref=e38]:
+        - img
+  - main [ref=e24]:
+    - button [ref=e26]:
+      - img
+    - generic [ref=e27]:
+      - heading "New Chat" [level=2] [ref=e40]
+      - paragraph [ref=e46]: Send a message to start the conversation
+      - generic [ref=e48]:
+        - textbox "Type a message... (Shift+Enter for new line)" [ref=e49]
+        - button "发送" [disabled]:
+          - img

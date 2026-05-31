@@ -1,0 +1,13 @@
+{
+  "title": "Setup Backend Framework",
+  "slug": "05-31-setup-backend-framework",
+  "status": "in_progress",
+  "assignee": "lyqing",
+  "priority": "P1",
+  "description": "搭建 Gin + PostgreSQL + Redis 后端项目框架",
+  "created": "2026-05-31",
+  "branch": null,
+  "base_branch": null,
+  "scope": null,
+  "subtasks": []
+}

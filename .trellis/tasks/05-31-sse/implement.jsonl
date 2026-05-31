@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "新建 use-chat-stream 自定义 hook，需遵循 hook 规范"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "流式更新复用 reducer 的 addMessage/updateMessage，需符合状态管理约定"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "请求/响应契约、SSE event 类型需类型安全"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "新文件放置位置与命名"}
