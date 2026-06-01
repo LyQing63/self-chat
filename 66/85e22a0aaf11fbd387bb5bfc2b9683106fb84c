@@ -1,0 +1,18 @@
+backend/internal/config/config.go
+  h_0d874f0727922b 17,54-58
+backend/repository/vector.go
+  h_0d874f0727922b 1-45
+backend/config.example.yaml
+  h_0d874f0727922b 27-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "6685e22a0aaf11fbd387bb5bfc2b9683106fb84c",
+  "prompts": {},
+  "humans": {
+    "h_0d874f0727922b": {
+      "author": "LyQing63 <1827304875@qq.com>"
+    }
+  }
+}
