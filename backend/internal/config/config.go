@@ -14,6 +14,7 @@ type Config struct {
 	Redis     RedisConfig    `mapstructure:"redis"`
 	Log       LogConfig      `mapstructure:"log"`
 	LLMConfig LLMConfig      `mapstructure:"llm"`
+	VectorDB  VectorDBConfig `mapstructure:"vectorDB"`
 }
 
 type ServerConfig struct {
@@ -48,6 +49,11 @@ type LLMConfig struct {
 	APIKey      string  `mapstructure:"api_key"`
 	Temperature float64 `mapstructure:"temperature"`
 	Model       string  `mapstructure:"model"`
+}
+
+type VectorDBConfig struct {
+	Host string `mapstructure:"host"`
+	Port int    `mapstructure:"port"`
 }
 
 // Load reads configuration from config.yaml and environment variables.

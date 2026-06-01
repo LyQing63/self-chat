@@ -24,3 +24,6 @@ llm:
 log:
   level: debug  # debug | info | warn | error
   format: text  # text | json
+vectorDB:
+  host: localhost
+  port: 6334
