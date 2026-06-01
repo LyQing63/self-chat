@@ -1,34 +1,57 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from "react"
 import type { AppState, ChatAction, Message, Conversation, Theme } from "@/types/chat"
+import {
+  fetchHistory,
+  fetchMessages,
+  deleteConversationApi,
+  updateConversationTitleApi,
+  type ApiConversation,
+  type ApiMessage,
+} from "@/api/chat"
 
-const STORAGE_KEY = "chat-app-state"
+// 会话/消息以后端为唯一真实来源，仅 theme 仍本地持久化（客户端偏好）。
+const THEME_KEY = "chat-app-theme"
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
 }
 
-function loadState(): Partial<AppState> {
+function loadTheme(): Theme | null {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? JSON.parse(stored) : {}
+    const stored = localStorage.getItem(THEME_KEY)
+    return stored === "light" || stored === "dark" || stored === "system" ? stored : null
   } catch {
-    return {}
+    return null
   }
 }
 
-function saveState(state: AppState) {
+function saveTheme(theme: Theme) {
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        conversations: state.conversations,
-        currentConversationId: state.currentConversationId,
-        messages: state.messages,
-        theme: state.theme,
-      })
-    )
+    localStorage.setItem(THEME_KEY, theme)
   } catch {
     // ignore storage errors
+  }
+}
+
+// 后端会话 → 前端会话：id 与 backendId 同为后端 UUID，时间转毫秒时间戳。
+function mapConversation(c: ApiConversation): Conversation {
+  return {
+    id: c.id,
+    backendId: c.id,
+    title: c.title,
+    createdAt: new Date(c.created_at).getTime(),
+    updatedAt: new Date(c.updated_at).getTime(),
+  }
+}
+
+// 后端消息 → 前端消息：id 转字符串，timestamp 不参与展示，按顺序填占位值。
+function mapMessage(m: ApiMessage, conversationId: string, index: number): Message {
+  return {
+    id: String(m.id),
+    conversationId,
+    role: m.role,
+    content: m.content,
+    timestamp: index,
   }
 }
 
@@ -73,6 +96,14 @@ function chatReducer(state: AppState, action: ChatAction): AppState {
           c.id === action.payload.id
             ? { ...c, title: action.payload.title, updatedAt: Date.now() }
             : c
+        ),
+      }
+
+    case "SET_CONVERSATION_BACKEND_ID":
+      return {
+        ...state,
+        conversations: state.conversations.map((c) =>
+          c.id === action.payload.id ? { ...c, backendId: action.payload.backendId } : c
         ),
       }
 
@@ -134,9 +165,10 @@ interface ChatContextValue {
   state: AppState
   dispatch: React.Dispatch<ChatAction>
   createConversation: () => Conversation
-  deleteConversation: (id: string) => void
-  renameConversation: (id: string, title: string) => void
-  setCurrentConversation: (id: string | null) => void
+  deleteConversation: (id: string) => Promise<void>
+  renameConversation: (id: string, title: string) => Promise<void>
+  setConversationBackendId: (id: string, backendId: string) => void
+  setCurrentConversation: (id: string | null) => Promise<void>
   addMessage: (role: "user" | "assistant", content: string, conversationId?: string) => Message
   updateMessage: (id: string, content: string) => void
   toggleSidebar: () => void
@@ -148,20 +180,28 @@ const ChatContext = createContext<ChatContextValue | null>(null)
 export function ChatProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(chatReducer, initialState)
 
-  // Load persisted state on mount
+  // 挂载时：恢复本地 theme，并从后端拉取会话列表（替代旧的 localStorage 全量恢复）。
   useEffect(() => {
-    const stored = loadState()
-    if (Object.keys(stored).length > 0) {
-      dispatch({ type: "LOAD_STATE", payload: stored })
+    const theme = loadTheme()
+    if (theme) {
+      dispatch({ type: "SET_THEME", payload: theme })
     }
+    fetchHistory()
+      .then((list) => {
+        dispatch({
+          type: "LOAD_STATE",
+          payload: { conversations: list.map(mapConversation) },
+        })
+      })
+      .catch((err) => {
+        console.error("加载会话列表失败：", err)
+      })
   }, [])
 
-  // Persist state on change
+  // 仅持久化 theme；会话/消息以后端为准，不再写 localStorage。
   useEffect(() => {
-    if (state.conversations.length > 0 || state.currentConversationId) {
-      saveState(state)
-    }
-  }, [state.conversations, state.currentConversationId, state.messages, state.theme])
+    saveTheme(state.theme)
+  }, [state.theme])
 
   // Apply theme class to html element
   useEffect(() => {
@@ -183,16 +223,57 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     return conversation
   }
 
-  function deleteConversation(id: string) {
+  async function deleteConversation(id: string) {
+    const conv = state.conversations.find((c) => c.id === id)
+    // 已落库会话先删后端；纯本地占位（无 backendId）直接删本地。
+    if (conv?.backendId) {
+      try {
+        await deleteConversationApi(conv.backendId)
+      } catch (err) {
+        console.error("删除会话失败：", err)
+        return
+      }
+    }
     dispatch({ type: "DELETE_CONVERSATION", payload: id })
   }
 
-  function renameConversation(id: string, title: string) {
+  async function renameConversation(id: string, title: string) {
+    const conv = state.conversations.find((c) => c.id === id)
+    // 已落库会话调后端再同步；本地占位（含首条消息前的自动标题）仅乐观更新。
+    if (conv?.backendId) {
+      try {
+        await updateConversationTitleApi(conv.backendId, title)
+      } catch (err) {
+        console.error("重命名会话失败：", err)
+        return
+      }
+    }
     dispatch({ type: "RENAME_CONVERSATION", payload: { id, title } })
   }
 
-  function setCurrentConversation(id: string | null) {
+  function setConversationBackendId(id: string, backendId: string) {
+    dispatch({ type: "SET_CONVERSATION_BACKEND_ID", payload: { id, backendId } })
+  }
+
+  async function setCurrentConversation(id: string | null) {
     dispatch({ type: "SET_CURRENT_CONVERSATION", payload: id })
+    if (!id) return
+    const conv = state.conversations.find((c) => c.id === id)
+    // 仅对已落库且尚未加载过消息的会话拉取（undefined = 从未加载；[] = 已加载空）。
+    if (conv?.backendId && state.messages[id] === undefined) {
+      try {
+        const apiMessages = await fetchMessages(conv.backendId)
+        dispatch({
+          type: "SET_MESSAGES",
+          payload: {
+            conversationId: id,
+            messages: apiMessages.map((m, i) => mapMessage(m, id, i)),
+          },
+        })
+      } catch (err) {
+        console.error("加载会话消息失败：", err)
+      }
+    }
   }
 
   function addMessage(role: "user" | "assistant", content: string, conversationId?: string): Message {
@@ -229,6 +310,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         createConversation,
         deleteConversation,
         renameConversation,
+        setConversationBackendId,
         setCurrentConversation,
         addMessage,
         updateMessage,

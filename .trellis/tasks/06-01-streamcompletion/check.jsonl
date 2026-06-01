@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "验收需检查禁用模式、命名、函数粒度等代码标准"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "重点核对所有 repo/落库错误均被显式处理且 wrap,无吞错"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "核对落库语义:懒创建条件、软删除、updated_at 更新是否符合规范"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "核对 handler↔service↔repo 数据流与 SSE 事件序列(conversation→delta→done)一致"}

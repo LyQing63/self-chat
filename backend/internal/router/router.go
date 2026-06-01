@@ -34,4 +34,8 @@ func RegisterChatRoutes(
 	api := r.Group("/api/v1/chat")
 
 	api.POST("/completions", h.Completion)
+	api.GET("/history", h.History)
+	api.GET("/messages", h.Messages)
+	api.DELETE("/conversations/delete", h.DeleteConversation)
+	api.POST("/update/title", h.UpdateConversationTitle)
 }

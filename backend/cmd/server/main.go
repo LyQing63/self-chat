@@ -50,7 +50,7 @@ func main() {
 
 	// Initialize services
 	var svc *service.Service
-	svc, err = service.Init(cfg)
+	svc, err = service.Init(cfg, db)
 	if err != nil {
 		slog.Error("Failed to initialize services", slog.String("error", err.Error()))
 		return

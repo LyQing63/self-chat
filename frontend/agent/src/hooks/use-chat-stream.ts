@@ -1,11 +1,12 @@
 import { useCallback, useRef } from "react"
 import { useChat } from "@/contexts/chat-context"
+import { DEFAULT_USER_ID } from "@/api/chat"
 import type { ChatRequest, ChatRequestMessage, ChatStreamEvent } from "@/types/chat"
 
 const ENDPOINT = "/api/v1/chat/completions"
 
 export function useChatStream() {
-  const { addMessage, updateMessage, dispatch } = useChat()
+  const { addMessage, updateMessage, setConversationBackendId, dispatch } = useChat()
   const abortRef = useRef<AbortController | null>(null)
 
   const stop = useCallback(() => {
@@ -13,7 +14,11 @@ export function useChatStream() {
   }, [])
 
   const streamAssistant = useCallback(
-    async (conversationId: string, requestMessages: ChatRequestMessage[]) => {
+    async (
+      conversationId: string,
+      requestMessages: ChatRequestMessage[],
+      backendConversationId?: string
+    ) => {
       abortRef.current?.abort()
       const controller = new AbortController()
       abortRef.current = controller
@@ -37,7 +42,12 @@ export function useChatStream() {
         const res = await fetch(ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: requestMessages } satisfies ChatRequest),
+          // 首轮省略 conversation_id（后端懒创建并回传）；后续轮次带上
+          body: JSON.stringify({
+            user_id: DEFAULT_USER_ID,
+            messages: requestMessages,
+            ...(backendConversationId ? { conversation_id: backendConversationId } : {}),
+          } satisfies ChatRequest),
           signal: controller.signal,
         })
 
@@ -71,7 +81,10 @@ export function useChatStream() {
               continue
             }
 
-            if (event.type === "delta") {
+            if (event.type === "conversation") {
+              // 新建会话：把后端回传的 id 存进当前会话状态，供后续请求复用
+              setConversationBackendId(conversationId, event.id)
+            } else if (event.type === "delta") {
               acc += event.content
               writeContent(acc)
             } else if (event.type === "error") {
@@ -91,7 +104,7 @@ export function useChatStream() {
         if (abortRef.current === controller) abortRef.current = null
       }
     },
-    [addMessage, updateMessage, dispatch]
+    [addMessage, updateMessage, setConversationBackendId, dispatch]
   )
 
   return { streamAssistant, stop }

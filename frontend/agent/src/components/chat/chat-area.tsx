@@ -27,6 +27,11 @@ export function ChatArea() {
         conversationId = conversation.id
       }
 
+      // 已有会话则取后端回传的 id；首轮为 undefined，后端会懒创建并回传
+      const backendConversationId = state.conversations.find(
+        (c) => c.id === conversationId
+      )?.backendId
+
       addMessage("user", content, conversationId)
 
       // Auto-title: use first message as title
@@ -41,9 +46,9 @@ export function ChatArea() {
         { role: "user" as const, content },
       ]
 
-      void streamAssistant(conversationId, requestMessages)
+      void streamAssistant(conversationId, requestMessages, backendConversationId)
     },
-    [state.currentConversationId, messages, addMessage, createConversation, renameConversation, streamAssistant]
+    [state.currentConversationId, state.conversations, messages, addMessage, createConversation, renameConversation, streamAssistant]
   )
 
   // Page load animation

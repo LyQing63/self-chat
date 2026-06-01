@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "写链路核心是 GORM repo 落库(建会话、存消息、更新 updated_at),需遵循 ORM/查询/事务约定"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "现状 saveMessage 错误被吞掉;落库失败必须显式中断并 wrap 返回,按错误处理规范实现"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "repository 当前在 backend/repository 与 internal/ 割裂;放置与依赖注入需符合目录结构约定"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "改动跨 handler↔service↔repo 三层(新增 onConversation 回调 + SSE conversation 事件),需保证跨层数据流一致"}

@@ -2,7 +2,7 @@ package service
 
 import (
 	"agent/internal/config"
-	"agent/internal/repository"
+	"agent/internal/dto"
 	"context"
 	"fmt"
 
@@ -11,9 +11,7 @@ import (
 )
 
 type DeepSeekService struct {
-	apiKey      string
-	temperature float64
-	model       string
+	BaseLLMService
 }
 
 func initDeepSeekService(cfg config.LLMConfig) {
@@ -22,9 +20,11 @@ func initDeepSeekService(cfg config.LLMConfig) {
 
 func NewDeepSeekService(cfg config.LLMConfig) *DeepSeekService {
 	return &DeepSeekService{
-		apiKey:      cfg.APIKey,
-		temperature: cfg.Temperature,
-		model:       cfg.Model,
+		BaseLLMService: BaseLLMService{
+			apiKey:      cfg.APIKey,
+			temperature: cfg.Temperature,
+			model:       cfg.Model,
+		},
 	}
 }
 
@@ -36,7 +36,7 @@ func (s *DeepSeekService) genGPTMessageFromString(prompt string) openai.ChatComp
 	return openai.UserMessage(prompt)
 }
 
-func (s *DeepSeekService) genGPTMessage(msg repository.ChatMessage) openai.ChatCompletionMessageParamUnion {
+func (s *DeepSeekService) genGPTMessage(msg dto.ChatMessage) openai.ChatCompletionMessageParamUnion {
 	switch msg.Role {
 	case "system":
 		return openai.SystemMessage(msg.Content)
@@ -71,42 +71,17 @@ func (s *DeepSeekService) GetCompletion(prompt string, model string) (string, er
 }
 
 func (s *DeepSeekService) StreamCompletion(
-	ctx context.Context, messages []repository.ChatMessage, onDelta func(string) error) error {
+	ctx context.Context, messages []dto.ChatMessage, onDelta func(string) error) (string, error) {
 
 	client := openai.NewClient(
 		option.WithAPIKey(s.apiKey),
 		option.WithBaseURL(BASE_URL),
 	)
 
-	msgs := make([]openai.ChatCompletionMessageParamUnion, len(messages))
-	for i, msg := range messages {
-		msgs[i] = s.genGPTMessage(msg)
+	responseContent, err := s.StreamCompletionWithClient(ctx, messages, &client, onDelta)
+	if err != nil {
+		return "", fmt.Errorf("deepseek stream completion: %w", err)
 	}
 
-	stream := client.Chat.Completions.NewStreaming(ctx, openai.ChatCompletionNewParams{
-		Model:       s.model,
-		Messages:    msgs,
-		Temperature: openai.Float(s.temperature),
-	})
-	defer stream.Close()
-
-	for stream.Next() {
-		chunk := stream.Current()
-		if len(chunk.Choices) == 0 {
-			continue
-		}
-		delta := chunk.Choices[0].Delta.Content
-		if delta == "" {
-			continue
-		}
-		if err := onDelta(delta); err != nil {
-			return err
-		}
-	}
-
-	if err := stream.Err(); err != nil {
-		return fmt.Errorf("stream error: %w", err)
-	}
-
-	return nil
+	return responseContent, nil
 }
